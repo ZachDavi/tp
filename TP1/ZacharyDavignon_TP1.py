@@ -14,7 +14,7 @@ from PySide6.QtWidgets import (
 from PySide6.QtCore import Qt
 
 
-
+#File Reading
 json_file = sys.argv[1]
 print(json_file)
 json_file_size = sys.getsizeof(json_file)
@@ -25,6 +25,7 @@ try:
 except:
     print(f"Could not load data from {json_file}")
 
+#Get file name
 file_name = os.path.basename(json_file)
 
 
@@ -46,27 +47,26 @@ for row, cells in enumerate(data): #Pour chaque ligne, stock combien il y en a d
 #Active le sorting
 tableau.setSortingEnabled(True)
 
-window = QMainWindow()
-container = QWidget()
-
+#Fonction pour chercher dans le fichier
 def search(s):
-    tableau.setCurrentItem(None)
+    tableau.setCurrentItem(None) #Met le higlight a none pour causer aucun probleme
 
-    if not s:
+    matching_items = tableau.findItems(s,Qt.MatchFlag.MatchContains) #On regarde si un item match avec ce qu'on écrit
+
+    if not s: #Si on trouve rien on sort de la fonction
         return
-
-    matching_items = tableau.findItems(s,Qt.MatchFlag.MatchContains)
-
-    if matching_items:
+    
+    if matching_items: #Si une lettre match pour tout les lettres qui match on highlight
         for item in matching_items:
             item.setSelected(True)
 
-#Searchbar
+#Création searchbar
 searchbar = QLineEdit(placeholderText="Search...")
 searchbar.textChanged.connect(search)
 
-
-file_info = QLabel(file_name + " " + str(json_file_size) + " bytes" + " " +  str(len(data)))
+window = QMainWindow()
+container = QWidget() #Boite qui englobe notre layout
+file_info = QLabel(file_name + " / " + str(json_file_size) + " bytes" + " / " +  str(len(data)) + " élements")
 container_layout = QVBoxLayout()
 container_layout.addWidget(searchbar)
 container_layout.addWidget(tableau)
