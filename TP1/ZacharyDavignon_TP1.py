@@ -1,21 +1,23 @@
 import sys
+import os
 import json
 from PySide6.QtWidgets import (
     QApplication,
     QMainWindow,
     QTableWidget,
     QTableWidgetItem,
-    QHBoxLayout,
-    QLabel,
-    QPushButton,
-    QLineEdit
+    QWidget,
+    QVBoxLayout,
+    QLineEdit,
+    QLabel
 )
+from PySide6.QtCore import Qt
 
 
 
 json_file = sys.argv[1]
 print(json_file)
-
+json_file_size = sys.getsizeof(json_file)
 try:
     file = open(json_file, encoding="utf-8")
     data = json.load(file)
@@ -23,44 +25,55 @@ try:
 except:
     print(f"Could not load data from {json_file}")
 
-for i in data:
-    print("Keys\n")
-    for k in i.keys():
-        print(f"      -{k}")
-    print("\n")
-    print("Values\n")
-    for v in i.values():
-        print(f"      -{v}")
-    print("\n")
-    print("Items\n")
-    for e in i.items():
-        print(f"      -{e}")
-    print("\n")
-    
+file_name = os.path.basename(json_file)
+
 
 
 #Crée une application (Grosse boite)
 app = QApplication([])
-layout = QHBoxLayout()
+
+#Crée Tableau
 tableau = QTableWidget()
-searchbar = QLineEdit(placeholderText="Search...")
 tableau.setRowCount(len(data))
 tableau.setColumnCount(len(data[0]))
 tableau.setHorizontalHeaderLabels(data[0].keys())
 
-layout.addWidget(searchbar)
-layout.setSpacing(20)
-layout.addWidget(tableau)
+#Logique pour chercher et placer chaque item dans les cells
+for row, cells in enumerate(data): #Pour chaque ligne, stock combien il y en a dans row et l'infortmation recu est stocké dans cells
+    for col, value in enumerate(data[row].values()): ##Pour chaque cells on stock le nombre dans col et la value de chaque item json dans value
+        tableau.setItem(row, col, QTableWidgetItem(str(value))) #Par rapport au nombre de colonnes et au nombre de lignes qui s'incrémente on va placer les données de value dans les cases
 
-for row, cells in enumerate(data):
-    for col, value in enumerate(data[row].values()):
-        tableau.setItem(row, col, QTableWidgetItem(str(value)))
-
-
+#Active le sorting
 tableau.setSortingEnabled(True)
+
 window = QMainWindow()
-window.setLayout(layout)
-window.setCentralWidget(tableau)
+container = QWidget()
+
+def search(s):
+    tableau.setCurrentItem(None)
+
+    if not s:
+        return
+
+    matching_items = tableau.findItems(s,Qt.MatchFlag.MatchContains)
+
+    if matching_items:
+        for item in matching_items:
+            item.setSelected(True)
+
+#Searchbar
+searchbar = QLineEdit(placeholderText="Search...")
+searchbar.textChanged.connect(search)
+
+
+file_info = QLabel(file_name + " " + str(json_file_size) + " bytes" + " " +  str(len(data)))
+container_layout = QVBoxLayout()
+container_layout.addWidget(searchbar)
+container_layout.addWidget(tableau)
+container_layout.addWidget(file_info)
+container.setLayout(container_layout)
+window.setCentralWidget(container)
+
 window.show()
 sys.exit(app.exec())
 
