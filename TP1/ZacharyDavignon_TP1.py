@@ -24,7 +24,7 @@ try:
     print(data)
 except:
     print(f"Could not load data from {json_file}")
-    sys.exit(1)
+    sys.exit()
 
 # Get file name
 file_name = os.path.basename(json_file)
